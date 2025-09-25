@@ -1,24 +1,31 @@
 const jokeEl = document.getElementById("joke");
 const jokeBtn = document.getElementById("joke-btn");
 
-const generateJoke = () => {
-  const xhr = new XMLHttpRequest();
+const generateJoke = async () => {
+  try {
+    const res = await fetch("https://api.chucknorris.io/jokes/random");
 
-  xhr.open("GET", "https://api.chucknorris.io/jokes/random");
-
-  xhr.onreadystatechange = function () {
-    if (this.readyState === 4) {
-      if (this.status === 200) {
-        jokeEl.innerHTML = JSON.parse(this.responseText).value;
-      } else {
-        jokeEl.style.color = "red";
-        jokeEl.style.fontWeight = "bold";
-        jokeEl.innerHTML =
-          "AIGHT LIL BRO I KNOW THIS ISNT FUNNY JUST SHUT YO MOUTH DAMN";
-      }
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
     }
-  };
-  xhr.send();
+
+    const data = await res.json();
+
+    if (data && data.value && data.value.trim()) {
+      jokeEl.innerHTML = data.value;
+      jokeEl.style.color = "";
+      jokeEl.style.fontWeight = "";
+    } else {
+      throw new Error("Invalid joke data received");
+    }
+  } catch (error) {
+    jokeEl.style.color = "red";
+    jokeEl.style.fontWeight = "bold";
+    jokeEl.innerHTML =
+      "Sorry, couldn't fetch a joke right now. Please try again later.";
+    console.error("Error fetching joke:", error);
+  }
 };
+
 jokeBtn.addEventListener("click", generateJoke);
 document.addEventListener("DOMContentLoaded", generateJoke);
